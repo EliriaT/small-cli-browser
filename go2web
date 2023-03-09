@@ -1,3 +1,8 @@
-#! /usr/bin/env bash
+#! /usr/bin/bash
 
-# ADD YOUR CODE HERE
+
+# add the file to the path in order to be able to run it as an oridnary command (without indicating the file script's path with ./ for example)
+cp ./go2web /usr/local/bin/
+
+./hi $@
+#go run main.go $@

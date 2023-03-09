@@ -4,7 +4,10 @@
 *.dll
 *.so
 *.dylib
+
+# Some custom files
 .idea/
+#app.env
 
 # Test binary, built with `go test -c`
 *.test
