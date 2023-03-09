@@ -43,12 +43,15 @@ func (c *Client) CheckIfInCache() (bool, cache.CacheValue) {
 
 func (c *Client) MakeHTTPRequest(count int) (textproto.MIMEHeader, string) {
 	present, cachedS := c.CheckIfInCache()
+
 	var request string
 	if present {
-		request = fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nIf-None-Match: %s\r\nAccept: text/plain,text/html,application/json;q=0.8,*/*;q=0.8\r\n\r\n", c.Url.RequestURI(), c.Url.Host, cachedS.Etag)
+		//log.Println("The URL is  cached. The Etag is: ", cachedS.Etag)
+		request = fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nIf-None-Match: %s\r\nAccept: text/plain,text/html,application/json;q=0.8,*/*;q=0.7\r\n\r\n", c.Url.RequestURI(), c.Url.Host, cachedS.Etag)
 
 	} else {
-		request = fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nAccept: text/plain,text/html,application/json;q=0.8,*/*;q=0.8\r\n\r\n", c.Url.RequestURI(), c.Url.Host)
+		//log.Println("The URL is not cached")
+		request = fmt.Sprintf("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\nAccept: text/plain,text/html,application/json;q=0.8,*/*;q=0.7\r\n\r\n", c.Url.RequestURI(), c.Url.Host)
 
 	}
 
@@ -74,12 +77,16 @@ func (c *Client) MakeHTTPRequest(count int) (textproto.MIMEHeader, string) {
 	headers, statusCode, body := c.parseHTTPResponse(string(result))
 
 	if statusCode >= 300 && statusCode <= 303 || statusCode == 307 || statusCode == 308 {
+
 		if count == 10 {
 			fmt.Println("Sorry this  address can not be accessed due to infinite redirection")
 			os.Exit(0)
 		}
 		redirectURL := headers.Get("Location")
 		urlStruct, err := url.Parse(redirectURL)
+
+		log.Printf("A redirect happened! Status Code is: %s. The redirect URL is: %s", statusCode, redirectURL)
+
 		checkError(err)
 		c.Url = urlStruct
 		newHeader, newBody := c.MakeHTTPRequest(count + 1)
@@ -129,18 +136,30 @@ func (c *Client) HandleBody(headers textproto.MIMEHeader, body string) {
 
 	//because of the ; at the end
 	alternativeContentTypeConst := contentType + ";"
+	alternativeContentType2 := strings.Split(headers.Get("Content-Type"), ";")[0] + ";"
 
-	if contentType == htmlContentDef || alternativeContentTypeConst == htmlContentDef {
+	if contentType == htmlContentDef || alternativeContentTypeConst == htmlContentDef || alternativeContentType2 == htmlContentDef {
 		c.printHTMLBody(body)
-	} else if contentType == plainContentDef || alternativeContentTypeConst == plainContentDef {
+	} else if contentType == plainContentDef || alternativeContentTypeConst == plainContentDef || alternativeContentType2 == plainContentDef {
 		c.printPlainTextBody(body)
-	} else if contentType == jsonContentDef || alternativeContentTypeConst == jsonContentDef {
+	} else if contentType == jsonContentDef || alternativeContentTypeConst == jsonContentDef || alternativeContentType2 == jsonContentDef {
 		c.printJsonBody(body)
+	} else {
+		fmt.Print("Sorry the body can not be parsed in a readable format. Do you want to show it as it is? y/n ")
+		var ans string
+		fmt.Scanf("%s", &ans)
+		if strings.ToLower(ans) == "n" {
+			os.Exit(0)
+		} else if strings.ToLower(ans) == "y" {
+			fmt.Println(body)
+		} else {
+			os.Exit(1)
+		}
 	}
 }
 func (c *Client) printPlainTextBody(body string) {
-	width := 140
-	chunks := splitString(body, width)
+	width := 150
+	chunks := SplitString(body, width)
 	formatted := strings.Join(chunks, "\n")
 	formatted = strings.ReplaceAll(formatted, "\n", "\n\t\t\t\t\t")
 	//formatted = justify.Center(100, formatted)
@@ -161,20 +180,24 @@ func (c *Client) printJsonBody(body string) {
 	if err != nil {
 		log.Fatal("Sorry, error beautifying json response")
 	}
-	fmt.Println(val)
+	//width := 190
+	//chunks := SplitString(val, width)
+	//formatted := strings.Join(chunks, "\n")
+	val = strings.ReplaceAll(val, "\n", "\n\t\t\t\t\t")
+	fmt.Println("\n\t\t\t\t\t" + val)
 }
 func (c *Client) printHTMLBody(body string) {
 	plain, err := html2text.FromString(body, html2text.Options{PrettyTables: true, OmitLinks: true, TextOnly: true})
 	checkError(err)
-	width := 140
-	chunks := splitString(plain, width)
+	width := 150
+	chunks := SplitString(plain, width)
 	formatted := strings.Join(chunks, "\n")
 	formatted = strings.ReplaceAll(formatted, "\n", "\n\t\t\t\t\t")
 	//formatted = justify.Center(100, formatted)
 	fmt.Println("\n\t\t\t\t\t" + formatted)
 }
 
-func splitString(s string, width int) []string {
+func SplitString(s string, width int) []string {
 	var chunks []string
 
 	for len(s) > 0 {

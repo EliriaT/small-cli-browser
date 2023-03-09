@@ -11,11 +11,18 @@ import (
 type Searcher struct {
 }
 
+// benefits of swimming
 func (s *Searcher) ParseSearchResults(jsonResult string) {
-	resultMap := map[string]interface{}{}
-	list := strings.Split(jsonResult, "\r\n")
 
-	err := json.Unmarshal([]byte(list[1]), &resultMap)
+	resultMap := map[string]interface{}{}
+
+	_, after, _ := strings.Cut(jsonResult, "\r\n")
+
+	init := strings.ReplaceAll(after, "\r\n", "")
+	init = strings.TrimSuffix(init, "0")
+	init = strings.TrimSpace(init)
+
+	err := json.Unmarshal([]byte(init), &resultMap)
 	if err != nil {
 		log.Println("Can not unmarshal json")
 		log.Fatal(err)
@@ -27,14 +34,18 @@ func (s *Searcher) ParseSearchResults(jsonResult string) {
 	}
 
 	resultsLinks := make([]string, 10)
-	fmt.Println("Top 10 search results: ")
+	fmt.Println("\n\t\t\t\t\t\t\t\tTop 10 search results: ")
 	for i := 0; i < len(results); i++ {
 		result, ok := results[i].(map[string]interface{})
 		if !ok {
 			log.Println("Can not parse search results. Sorry.")
 			log.Fatal(err)
 		}
-		fmt.Printf("%d. Title: %s \n   Description: %s \n   Link: %s \n\n", i+1, result["title"], result["snippet"], result["link"])
+		width := 70
+		chunks := httpClient.SplitString(result["snippet"].(string), width)
+		formattedDescr := strings.Join(chunks, "\n")
+		formattedDescr = strings.ReplaceAll(formattedDescr, "\n", "\n\t\t\t\t\t\t\t\t   ")
+		fmt.Printf("\n\t\t\t\t\t\t\t\t%d. Title: %s \n\t\t\t\t\t\t\t\t   Description: %s \n\t\t\t\t\t\t\t\t   Link: %s \n\n", i+1, result["title"], formattedDescr, result["link"])
 		resultsLinks[i] = result["link"].(string)
 	}
 	var ans = ""
@@ -46,7 +57,7 @@ func (s *Searcher) ParseSearchResults(jsonResult string) {
 
 		if err != nil || linkNum <= 0 || linkNum > 10 {
 			fmt.Print("You didn't type a valid number! Do you want to try again? y/n: ")
-			log.Println("nu ajunge")
+
 			_, err = fmt.Scanf("%s", &ans)
 			if err != nil {
 				fmt.Println("Sorry not a valid string")

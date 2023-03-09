@@ -65,7 +65,8 @@ func HandleSCmd() {
 	searcher := searchEngine.NewSearcher()
 
 	searchTerms := strings.Join(os.Args[2:], "+")
-	apiUrl := fmt.Sprintf("https://www.googleapis.com/customsearch/v1?key=%s&cx=92f172b9e6774438a&q=$=%s", config.GlobalConfig.APISecret, searchTerms)
+	//&c2coff=1&gl=md
+	apiUrl := fmt.Sprintf("https://www.googleapis.com/customsearch/v1?key=%s&cx=92f172b9e6774438a&q=$=%s&c2coff=1&gl=md", config.GlobalConfig.APISecret, searchTerms)
 	client := httpClient.NewClient(apiUrl)
 	_, body := client.MakeHTTPRequest(0)
 	searcher.ParseSearchResults(body)
