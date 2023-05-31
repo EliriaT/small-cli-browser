@@ -1,8 +1,12 @@
 # small-cli-browser
 * Laboratory work nr 2 for Web Programming course.
 * CLI application that allows making HTTP requests from the terminal and to the Google search engine.
-* No HTTP client is used. 
-* HTTP requests are made and received only through TCP connection only
+* No HTTP client library is used. 
+* HTTP requests are made and received only through TCP connection only.
+* HTTP redirect request implemented
+* HTTP etag cache mechanism implemented
+* HTTP content negotiation
+
 
 
 ## Run the application
