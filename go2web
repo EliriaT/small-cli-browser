@@ -1,8 +1,9 @@
 #! /usr/bin/bash
 
 
-# add the file to the path in order to be able to run it as an oridnary command (without indicating the file script's path with ./ for example)
-cp ./go2web /usr/local/bin/
+# add the file to the path in order to be able to run it as an ordinary command (without indicating the file script's path with ./ for example)
+#cp ./go2web /usr/local/bin/
+#cp ./hi /usr/local/bin/
 
-./hi $@
+hi $@
 #go run main.go $@
