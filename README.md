@@ -1,5 +1,5 @@
 # small-cli-browser
-Laboratory work nr 2 for Web Programming course. CLI application that allows making HTTP requests from the terminal and to a default search engine.
+Laboratory work nr 2 for Web Programming course. CLI application that allows making HTTP requests from the terminal and to a default search engine. No HTTP client is used. HTTP requests are made and received only through TCP connection only
 
 
 ## Run the application
